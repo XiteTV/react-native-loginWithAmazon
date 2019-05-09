@@ -16,6 +16,8 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.bridge.WritableNativeMap;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -96,17 +98,20 @@ public class RNReactNativeLoginWithAmazonModule extends ReactContextBaseJavaModu
     }
 
   @ReactMethod
-  public void signOut () {
+  public void signOut (final Promise promise) {
+    final WritableMap params = new WritableNativeMap();
     // Todo: Handle this
     AuthorizationManager.signOut(getReactApplicationContext(), new Listener<Void, AuthError>() {
       @Override
       public void onSuccess(Void aVoid) {
-
+        params.putString("status", "SUCCESS");
+        promise.resolve(params);
       }
 
       @Override
       public void onError(AuthError authError) {
-
+        params.putString("status", "SUCCESS");
+        promise.reject("error", params);
       }
     });
   }

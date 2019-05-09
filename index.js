@@ -46,8 +46,15 @@ const AmazonLogin = {
 			onError(e);
 		}
 	},
-	signOut: () => {
-		// RNReactNativeLoginWithAmazon.signOut();
+	signOut: async ({ onSuccess = () => {}, onError = () => {} }) => {
+		try {
+			const response = await RNReactNativeLoginWithAmazon.signOut();
+			console.log('[Authorization Signout]', JSON.stringify(response, null, 2));
+			onSuccess(response);
+		} catch (e) {
+			console.log('[Authorization Signout] - error', JSON.stringify(e, null, 2));
+			onError(e);
+		}
 	},
 };
 
