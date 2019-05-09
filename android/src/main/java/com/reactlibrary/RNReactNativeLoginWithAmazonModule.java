@@ -6,35 +6,47 @@ import android.util.Log;
 
 import com.amazon.identity.auth.device.AuthError;
 import com.amazon.identity.auth.device.api.Listener;
-import com.amazon.identity.auth.device.api.authorization.AuthCancellation;
 import com.amazon.identity.auth.device.api.authorization.AuthorizationManager;
-import com.amazon.identity.auth.device.api.authorization.AuthorizeListener;
 import com.amazon.identity.auth.device.api.authorization.AuthorizeRequest;
-import com.amazon.identity.auth.device.api.authorization.AuthorizeResult;
 import com.amazon.identity.auth.device.api.authorization.ProfileScope;
-import com.amazon.identity.auth.device.api.authorization.User;
 import com.amazon.identity.auth.device.api.workflow.RequestContext;
+import com.facebook.react.bridge.Callback;
+import com.facebook.react.bridge.LifecycleEventListener;
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-import com.facebook.react.bridge.Callback;
-import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.bridge.WritableNativeMap;
-import com.facebook.react.modules.core.DeviceEventManagerModule;
 
-public class RNReactNativeLoginWithAmazonModule extends ReactContextBaseJavaModule {
+import java.util.HashMap;
+import java.util.Map;
+
+public class RNReactNativeLoginWithAmazonModule extends ReactContextBaseJavaModule implements LifecycleEventListener {
 
   private final ReactApplicationContext reactContext;
   private RequestContext requestContext;
-  private DeviceEventManagerModule.RCTDeviceEventEmitter mJSModule = null;
+
   private UserAuthorizationListener userAuthorizationListener;
+  private UserInformationListener userInformationListener;
 
   private static final String TAG = "RN_LOGIN_W/AMAZON_MOD";
+
+  private final Map<String, String> AUTHORIZATION_STATUS = new HashMap<>();
+  private final Map<String, String> USER_INFO_STATUS = new HashMap<>();
 
   public RNReactNativeLoginWithAmazonModule(ReactApplicationContext reactContext) {
     super(reactContext);
     this.reactContext = reactContext;
     this.initLoginWithAmazon();
+
+    reactContext.addLifecycleEventListener(this);
+
+    // Setting constants
+    AUTHORIZATION_STATUS.put("SUCCESS", "authorizationSuccess");
+    AUTHORIZATION_STATUS.put("ERROR", "authorizationError");
+    AUTHORIZATION_STATUS.put("CANCEL", "authorizationCancel");
+
+    USER_INFO_STATUS.put("SUCCESS", "userInfoSuccess");
+    USER_INFO_STATUS.put("ERROR", "userInfoError");
   }
 
   @Override
@@ -42,19 +54,46 @@ public class RNReactNativeLoginWithAmazonModule extends ReactContextBaseJavaModu
     return "RNReactNativeLoginWithAmazon";
   }
 
-  @ReactMethod
-  public void initialize() {
-    this.initLoginWithAmazon();
+  @Override
+  public Map<String, Object> getConstants() {
+    final Map<String, Object> constants = new HashMap<>();
+
+    constants.put("authorizationStatus", this.AUTHORIZATION_STATUS);
+    constants.put("userInfoStatus", this.USER_INFO_STATUS);
+
+    return  constants;
+  }
+
+  @Override
+  public void onHostResume() {
+      this.requestContext.onResume();
+  }
+
+  @Override
+  public void onHostPause() {
+        // Activity `onPause`
+  }
+
+  @Override
+  public void onHostDestroy() {
+        // Activity `onDestroy`
   }
 
   @ReactMethod
-  public void requestAuthorization () {
+  public void requestAuthorization (Promise promise) {
+    this.userAuthorizationListener.setPromise(promise);
     AuthorizationManager.authorize(
             new AuthorizeRequest.Builder(requestContext)
               .addScopes(ProfileScope.profile(), ProfileScope.postalCode())
               .build()
     );
   }
+
+    @ReactMethod
+    public void getUserInformation(Promise promise) {
+      this.userInformationListener.setPromise(promise);
+        userAuthorizationListener.fetchUserProfile();
+    }
 
   @ReactMethod
   public void signOut () {
@@ -72,92 +111,22 @@ public class RNReactNativeLoginWithAmazonModule extends ReactContextBaseJavaModu
     });
   }
 
-  @ReactMethod
-  public void getUserInformation() {
-    userAuthorizationListener.fetchUserProfile();
-  }
-
-//  /**
-//   * Function that initialise the DeviceEventManager to send event out
-//   * to react-native
-//   *
-//   */
-//  private void initializeDeviceEmitter() {
-//    if (this.mJSModule == null) {
-//      this.mJSModule = reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
-//    }
-//  }
-
   private void initLoginWithAmazon() {
     Log.d(TAG, "initLoginWithAmazon: initializing");
 
     requestContext = RequestContext.create(this.reactContext.getApplicationContext());
-    final UserInformationListener userInformationListener = new UserInformationListener(reactContext);
-    userAuthorizationListener = new UserAuthorizationListener(userInformationListener, reactContext);
+
+    this.userInformationListener = new UserInformationListener(
+            USER_INFO_STATUS,
+            reactContext);
+
+    this.userAuthorizationListener = new UserAuthorizationListener(
+            userInformationListener,
+            AUTHORIZATION_STATUS,
+            reactContext
+    );
+
     requestContext.registerListener(userAuthorizationListener);
 
-//    final WritableMap params = new WritableNativeMap();
-//    this.initializeDeviceEmitter();
-//    requestContext.registerListener(new AuthorizeListener() {
-//      @Override
-//      public void onSuccess(AuthorizeResult authorizeResult) {
-//        fetchUserProfile();
-//        params.putString("status", "SUCCESS");
-//        emitToBridge("onAuthorizeListener", params);
-//      }
-//
-//      @Override
-//      public void onError(AuthError authError) {
-//        Log.e(TAG, "AuthError during authorization", authError);
-//        params.putString("status", "ERROR");
-//        params.putString("message", "" + authError);
-//        emitToBridge("onAuthorizeListener", params);
-//      }
-//
-//      @Override
-//      public void onCancel(AuthCancellation authCancellation) {
-//        params.putString("status", "CANCEL");
-//        params.putString("message", "" + authCancellation);
-//        emitToBridge("onAuthorizeListener", params);
-//      }
-//    });
-
   }
-
-//  private void fetchUserProfile() {
-//    User.fetch(this.reactContext, new Listener<User, AuthError>() {
-//      final WritableMap params = new WritableNativeMap();
-//
-//      /* fetch completed successfully. */
-//      @Override
-//      public void onSuccess(User user) {
-//        final String name = user.getUserName();
-//        final String email = user.getUserEmail();
-//        final String account = user.getUserId();
-//        final String zipCode = user.getUserPostalCode();
-//
-//        params.putString("name", name);
-//        params.putString("email", email);
-//        params.putString("id", account);
-//        params.putString("zipCode", zipCode);
-//
-//        Log.d(TAG, "User information: " + name + ", " + email + ", " + account + ", " +  zipCode + "." );
-//        emitToBridge("onUserProfileResponse", params);
-//      }
-//
-//      /* There was an error during the attempt to get the profile. */
-//      @Override
-//      public void onError(AuthError authError) {
-//        params.putString("error", "" + authError);
-//        emitToBridge("onUserProfileResponse", params);
-//      }
-//
-//    });
-//  }
-//
-//  public void emitToBridge(String eventName, WritableMap map) {
-//    this.initializeDeviceEmitter();
-//
-//    mJSModule.emit(eventName, map);
-//  }
 }

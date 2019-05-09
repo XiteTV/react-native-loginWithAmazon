@@ -5,19 +5,27 @@ import android.util.Log;
 import com.amazon.identity.auth.device.AuthError;
 import com.amazon.identity.auth.device.api.Listener;
 import com.amazon.identity.auth.device.api.authorization.User;
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class UserInformationListener implements Listener<User, AuthError> {
   private static final String TAG = UserAuthorizationListener.class.getName();
   private final ReactApplicationContext reactContext;
+
+  private Map<String, String> USER_INFO_STATUS;
+  private Promise promise;
   private DeviceEventManagerModule.RCTDeviceEventEmitter mJSModule = null;
 
-  public UserInformationListener(final ReactApplicationContext reactContext) {
+  public UserInformationListener(final Map<String, String> status, final ReactApplicationContext reactContext) {
     Log.d(TAG, "Initialising UserInformationListener class");
     this.reactContext = reactContext;
+    this.USER_INFO_STATUS = status;
   }
 
   @Override
@@ -33,33 +41,34 @@ public class UserInformationListener implements Listener<User, AuthError> {
     params.putString("email", email);
     params.putString("id", account);
     params.putString("zipCode", zipCode);
+    params.putString("status", USER_INFO_STATUS.get("SUCCESS"));
 
     Log.d(TAG, "User information: " + name + ", " + email + ", " + account + ", " +  zipCode + "." );
-    emitToBridge("onUserProfileResponse", params);
+
+    if (this.promise != null) {
+      this.promise.resolve(params);
+      this.clearPromise();
+    }
   }
 
   @Override
   public void onError(AuthError authError) {
     final WritableMap params = new WritableNativeMap();
 
-    params.putString("error", "" + authError);
-    emitToBridge("onUserProfileResponse", params);
-  }
+    params.putString("status", USER_INFO_STATUS.get("ERROR"));
+    params.putString("statusMessage", "" + authError);
 
-  /**
-   * Function that initialise the DeviceEventManager to send event out
-   * to react-native
-   *
-   */
-  private void initializeDeviceEmitter() {
-    if (this.mJSModule == null) {
-      this.mJSModule = reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
+    if (this.promise != null) {
+      this.promise.reject("error", params);
+      this.clearPromise();
     }
   }
 
-  private void emitToBridge(String eventName, WritableMap map) {
-    this.initializeDeviceEmitter();
+  public void setPromise(Promise promise) {
+    this.promise = promise;
+  }
 
-    mJSModule.emit(eventName, map);
+  private void clearPromise() {
+    this.promise = null;
   }
 }
