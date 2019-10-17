@@ -1,21 +1,27 @@
 {
-	"name": "react-native-login-with-amazon",
-	"version": "1.0.0",
-	"description": "",
-	"main": "index.js",
-	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1"
-	},
-	"keywords": [
-		"react-native",
-		"Amazon",
-		"Login with Amazon",
-		"Android"
-	],
-	"author": "",
-	"license": "",
-	"peerDependencies": {
-		"react-native": "^0.41.2",
-		"react-native-windows": "0.41.0-rc.1"
-	}
+  "name": "react-native-login-with-amazon",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "baseUrl": "https://xite.com"
+  },
+  "keywords": [
+    "react-native",
+    "Amazon",
+    "Login with Amazon",
+    "Android"
+  ],
+  "author": {
+    "name": "XITE Networks",
+    "username": "xite"
+  },
+  "license": "",
+  "peerDependencies": {
+    "react-native": "^0.41.2",
+    "react-native-windows": "0.41.0-rc.1"
+  }
 }
