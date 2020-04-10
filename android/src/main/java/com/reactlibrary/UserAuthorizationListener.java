@@ -53,7 +53,7 @@ public class UserAuthorizationListener extends AuthorizeListener {
     params.putString("status", AUTHORIZATION_STATUS.get("ERROR"));
     params.putString("message", "" + authError);
 
-    this.promise.reject("error", params);
+    this.promise.reject( params);
     this.clearPromise();
   }
 
