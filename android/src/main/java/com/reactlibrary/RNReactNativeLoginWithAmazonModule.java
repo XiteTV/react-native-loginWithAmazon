@@ -111,7 +111,7 @@ public class RNReactNativeLoginWithAmazonModule extends ReactContextBaseJavaModu
       @Override
       public void onError(AuthError authError) {
         params.putString("status", "FAILURE");
-        promise.reject(params);
+        promise.reject("error", params);
       }
     });
   }

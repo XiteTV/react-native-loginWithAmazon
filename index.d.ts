@@ -27,15 +27,13 @@ export interface UserInformationError {
 }
 
 export interface SignOut {
-  status: 'SUCCESS'
+  status: 'SUCCESS';
 }
 
 export interface SignOutError {
-  status: 'FAILURE'
+  status: 'FAILURE';
 }
 
-declare module 'react-native-loginWithAmazon' {
-  function requestAuthorization(): Promise<Authorization>;
-  function getUserInformation(): Promise<UserInformation>;
-  function signOut(): Promise<any>;
-}
+export function requestAuthorization(): Promise<Authorization>;
+export function getUserInformation(): Promise<UserInformation>;
+export function signOut(): Promise<any>;

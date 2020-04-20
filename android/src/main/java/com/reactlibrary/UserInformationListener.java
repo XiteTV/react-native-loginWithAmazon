@@ -59,7 +59,7 @@ public class UserInformationListener implements Listener<User, AuthError> {
     params.putString("statusMessage", "" + authError);
 
     if (this.promise != null) {
-      this.promise.reject(params);
+      this.promise.reject("error", params);
       this.clearPromise();
     }
   }
