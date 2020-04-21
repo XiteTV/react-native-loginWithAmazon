@@ -13,21 +13,9 @@ export async function requestAuthorization() {
   try {
     const response = await RNReactNativeLoginWithAmazon.requestAuthorization();
     console.log('[Authorization]', JSON.stringify(response, null, 2));
-    // onSuccess(response);
     return Promise.resolve(response);
   } catch (e) {
-    console.log('[Authorization] - error', JSON.stringify(e, null, 2));
-    // switch (e.status) {
-    //   case authorizationStatus.CANCEL:
-    //     onCancel(response);
-    //     break;
-    //   case authorizationStatus.ERROR:
-    //     onError(response);
-    //     break;
-    //   default:
-    //     break;
-    // }
-
+    console.error('[Authorization] - error', JSON.stringify(e, null, 2));
     return Promise.reject(e);
   }
 }
@@ -37,11 +25,9 @@ export async function getUserInformation() {
     const userInfoStatus = RNReactNativeLoginWithAmazon.userInfoStatus;
     const response = await RNReactNativeLoginWithAmazon.getUserInformation();
     console.log('[UserInformation]', JSON.stringify(response, null, 2));
-    // onSuccess(response);
     return Promise.resolve(response);
   } catch (e) {
-    console.log('[UserInformation] - error', JSON.stringify(e, null, 2));
-    // onError(e);
+    console.error('[UserInformation] - error', JSON.stringify(e, null, 2));
     return Promise.reject(e);
   }
 }
@@ -50,11 +36,12 @@ export async function signOut() {
   try {
     const response = await RNReactNativeLoginWithAmazon.signOut();
     console.log('[Authorization Signout]', JSON.stringify(response, null, 2));
-    // onSuccess(response);
     return Promise.resolve(response);
   } catch (e) {
-    console.log('[Authorization Signout] - error', JSON.stringify(e, null, 2));
-    // onError(e);
+    console.error(
+      '[Authorization Signout] - error',
+      JSON.stringify(e, null, 2)
+    );
     return Promise.reject(e);
   }
 }
