@@ -1,5 +1,5 @@
 
-package com.reactlibrary;
+package com.loginwithamazon;
 
 import android.content.Context;
 import android.util.Log;
